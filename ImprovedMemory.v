@@ -17,10 +17,12 @@
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
+//  External Interrupt Jumps to address 250 decimal so the interrupt routine can only go 4 lines before overflow happents
+//  
 //////////////////////////////////////////////////////////////////////////////////
 
-module Memory(CEENZ,addr, data_in, data_out, wr_en, clk,R0,R1,R2,R3,R4,R5,R6,PC,CPC,rst,datacee,ambain,literal,csrc,call,ret,pop,push,LNK);
+module Memory(eint,CEENZ,addr, data_in, data_out, wr_en, clk,R0,R1,R2,R3,R4,R5,R6,PC,CPC,rst,datacee,ambain,literal,csrc,call,ret,pop,push,LNK,stack);
+input eint;
 input CEENZ;
 input [4:0] addr;
 input [7:0] data_in;
@@ -45,6 +47,7 @@ input ret;
 input pop;
 input push;
 output [7:0] LNK;
+output [7:0] stack;
 
 reg [7:0] Mem[0:31];
 reg [7:0] internal_bus;
@@ -58,15 +61,19 @@ reg [7:0] REG6;
 reg [7:0] PCREG;
 reg [7:0] POPPUSHTEMP;
 reg [7:0] lnkreg;
+reg [5:0] sp;
+reg [7:0] stacktemp;
 
 
 initial internal_bus = Mem[addr];	// initialize what's at the output
 
 always@(negedge rst)
 begin
-   Mem[5'h1F] = 8'h00;   // Stack pointer
-   Mem[5'h0C] = 8'hFF;   // Clears PC
-   Mem[5'h1E] = 8'h00;   // Link Register
+   sp = 5'h14; // Stack Pointer register Pointer
+   stacktemp = 8'h00;   // Stack start address. 
+   Mem[5'h14] = 8'h00;   // Stack start address.
+   Mem[5'h0C] = 8'hFF;   // Clears PC   d12
+   Mem[5'h1E] = 8'h00;   // Link Register d30
    Mem[5'h00] = 8'h00;   //R0
    Mem[5'h01] = 8'h00;   //R1
    Mem[5'h02] = 8'h00;   //R2
@@ -81,6 +88,7 @@ end
 always @addr
          begin 
           internal_bus = Mem[addr];	// update what's at the output
+          stacktemp = Mem[sp];
           REG0 = Mem[5'h00]; // Update the Output for R0
           REG1 = Mem[5'h01]; // Update the Output for R1
           REG2 = Mem[5'h02]; // Update the Output for R2
@@ -90,37 +98,71 @@ always @addr
           REG6 = Mem[5'h06]; // Update the Output for R4
           PCREG = Mem[5'h0C]; // Update the Output for PC
           lnkreg = Mem[5'h1E]; // Update Link
-       end 
+         end 
        
 always @(posedge clk)
    if (wr_en == 1) 
-   begin
-       case(csrc)
-        2'b00: Mem[addr] = data_in;
-        2'b01: Mem[addr] = literal;
-        2'b10: Mem[addr] = ambain;
-        2'b11: Mem[addr] = datacee;           
-       endcase
-	   internal_bus = Mem[addr]; 	// update what's at the output
+       begin
+           case(csrc)
+            2'b00: Mem[addr] = data_in;
+            2'b01: Mem[addr] = literal;
+            2'b10: Mem[addr] = ambain;
+            2'b11: Mem[addr] = datacee;           
+           endcase
+           internal_bus = Mem[addr]; 	// update what's at the output
+	  if(eint)
+	       begin 
+	        Mem[5'h1E] = PCREG;   // Saves PC prior value to LNK
+            Mem[5'h0C] = 8'd249; //  PC to Jump Point 250
+            end
 	   if(call)
 	       begin
-	       Mem[5'h0D] = PCREG;   // Saves PC prior value
-	       PCREG = Mem[5'h0C]; // Update the Output for PC
-	       Mem[5'h1E] = Mem[5'h0D]+1'b1;
+	       Mem[5'h1E] = PCREG;   // Saves PC prior value to LNK Register
+	       PCREG = literal; // Update the Output for PC
+	       Mem[5'h0C] = literal; // sends call label to PC
 	       end
 	   if(ret)
                begin
-               Mem[5'h0C] = Mem[5'h0D]; // Link -> PC
-               PCREG = Mem[5'h1E]; // Update the Output for PC
+               Mem[5'h0C] = Mem[5'h1E]+1'b1; // Link -> PC Restores PC to call point
+               PCREG = Mem[5'h0C]+1'b1; // Update the Output for PC
                end
        if(pop)
                begin
-               Mem[5'h1E] = Mem[addr]; // Link -> PC
+               sp = sp - 1'b1; //SP-- 
+               REG0 = Mem[5'h00]; // Update the Output for R0
+               REG1 = Mem[5'h01]; // Update the Output for R1
+               REG2 = Mem[5'h02]; // Update the Output for R2
+               REG3 = Mem[5'h03]; // Update the Output for R4
+               REG4 = Mem[5'h04]; // Update the Output for R4
+               REG5 = Mem[5'h05]; // Update the Output for R2
+               REG6 = Mem[5'h06]; // Update the Output for R4
+               PCREG = Mem[5'h0C]; // Update the Output for PC
+               lnkreg = Mem[5'h1E]; // Update Link 
+                   if(sp>5'd29)
+                       begin 
+                       sp = 5'd20; // SP Overflow Reset
+                       end
                end
        if(push)
                begin
-               Mem[addr]=Mem[5'h1E]; //  PC->Link
-               end               
+               stacktemp = Mem[addr]; //  PUSH  Mem[20-29d]=Mem[0-19d & 30d/31d]
+               Mem[sp] = stacktemp;
+               sp = sp +1'b1; // SP++
+               REG0 = Mem[5'h00]; // Update the Output for R0
+               REG1 = Mem[5'h01]; // Update the Output for R1
+               REG2 = Mem[5'h02]; // Update the Output for R2
+               REG3 = Mem[5'h03]; // Update the Output for R4
+               REG4 = Mem[5'h04]; // Update the Output for R4
+               REG5 = Mem[5'h05]; // Update the Output for R2
+               REG6 = Mem[5'h06]; // Update the Output for R4
+               PCREG = Mem[5'h0C]; // Update the Output for PC
+               lnkreg = Mem[5'h1E]; // Update Link 
+                   if(sp>5'd29)
+                       begin 
+                       sp = 5'd20;  // SP Overflow Reset
+                       end
+               end
+                      
 	   case(CPC)
 	       2'd1: begin
                  PCREG=Mem[5'h0C];
@@ -167,5 +209,6 @@ assign R5 = REG5;
 assign R6 = REG6;
 assign PC = PCREG;
 assign LNK = lnkreg; 
+assign stack = sp;
 
 endmodule
