@@ -22,6 +22,7 @@
 
 module armtb;
 
+reg einttb; 
 reg rsttb;
 reg [7:0] Literaltb;
 reg [5:0] Addrtb;
@@ -49,46 +50,17 @@ reg rettb;
 reg poptb;
 reg pushtb;
 wire [7:0] LNKtb;
+wire [7:0] stacktb;
 wire CEENZtb;
+reg [7:0] ambaintb;
 
-ARM UUT (rsttb,Literaltb,Addrtb,dataintb,wr_entb,clktb,calutb,cpctb,csrctb,cmsrctb,dataouttb,R0tb,R4tb,PCtb,muxouttb,R1tb,R2tb,R3tb,R5tb,R6tb,CEEtb,caltb,rettb,poptb,pushtb,LNKtb,CEENZtb);
-/*
-module ARM(
-    input wire rst,
-    input wire [7:0] Lit,
-    input wire [5:0] addr,
-    input wire [7:0] datain,
-    //input wire [7:0] AMBI,
-    input wire wr_en,
-    input wire clk,
-    input wire [5:0] calu,
-    input wire cpc,
-    input wire [1:0] csrc,
-    input wire [2:0] cmsrc,
-    output wire [7:0] dataout,
-    output wire [7:0] R0,
-    output wire [7:0] R4,
-    output wire [7:0] PC,
-    output wire [7:0] muxout,
-    output wire [7:0] R1,
-    output wire [7:0] R2,
-    output wire [7:0] R3,
-    output wire [7:0] R4,
-    output wire [7:0] R5,    
-    output wire [7:0] R6,
-    output wire [7:0] CEE,
-    input wire call,
-    input wire ret,
-    input wire pop,
-    input wire push,
-    output wire [7:0] LNK,
-    );
-*/
+ARM UUT (einttb,rsttb,Literaltb,Addrtb,dataintb,wr_entb,clktb,calutb,cpctb,csrctb,cmsrctb,dataouttb,R0tb,R4tb,PCtb,muxouttb,R1tb,R2tb,R3tb,R5tb,R6tb,CEEtb,caltb,rettb,poptb,pushtb,LNKtb,CEENZtb,ambaintb,stacktb);
+
 initial 
 begin
-clktb=1'b0;
-rsttb=1'b0;
-#5 rsttb=1'b1; Literaltb=8'h00; Addrtb=8'h03; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1; cpctb=1'b1; dataintb=8'h11; AMBItb=8'h33; caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0;
+clktb=1'b0; // Clock Start Position
+rsttb=1'b0; // Reset Signal
+#5 einttb=1'b0; rsttb=1'b1; Literaltb=8'h00; Addrtb=8'h03; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1; cpctb=1'b1; dataintb=8'h11; AMBItb=8'h33; caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; ambaintb=8'h33;
 #5 csrctb=2'h0;
 #5 csrctb=2'h1;
 #5 csrctb=2'h2;
@@ -106,14 +78,19 @@ begin
 #10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h01; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b1;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //ADD R0,R1,R2
 #10	Literaltb=8'h3c; Addrtb=8'h00; calutb=8'h00; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'h2;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //CEE TEST NO SKIP IF SAME
 #10	Literaltb=8'h30; Addrtb=8'h00; calutb=8'h00; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'h2;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //CEE TEST SKIP IF NOT SAME
-#10	Literaltb=8'h00; Addrtb=8'h0E; calutb=8'h01; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b1; //PUSH PC
-#10	Literaltb=8'h00; Addrtb=8'h0D; calutb=8'h01; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b1; pushtb=1'b0; //POP PC
+#10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h01; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b1; //PUSH R0
+#10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h00; csrctb=2'h0; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b1;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //IN R0
+#10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h01; csrctb=2'h3; cmsrctb=3'h7; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b1; pushtb=1'b0; //POP R0
 #10	Literaltb=8'h44; Addrtb=8'h03; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b1;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //LD R3,44H
+#5 einttb = 1'b1;
+#5 einttb = 1'b0;
 #10	Literaltb=8'h00; Addrtb=8'h07; calutb=8'h00; csrctb=2'h2; cmsrctb=3'h3; wr_entb=1'b1;  cpctb=2'b1;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //MOV R7,R3
 #10	Literaltb=8'd170; Addrtb=8'h0C; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b1; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //CALL 170d Works
 #10	Literaltb=8'h66; Addrtb=8'h03; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b1;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //LD R3,66H  Works
-#10	Literaltb=8'd170; Addrtb=8'h07; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //RET   Doesn't Work
+#10	Literaltb=8'd170; Addrtb=8'd19; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b1; poptb=1'b0; pushtb=1'b0; //RET   Doesn't Work
+#10	Literaltb=8'd170; Addrtb=8'd19; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b1; poptb=1'b0; pushtb=1'b0; //RET   Doesn't Work
 #10	Literaltb=8'd00; Addrtb=8'h0C; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //JMP 00 Works
 end
 
 endmodule
+
