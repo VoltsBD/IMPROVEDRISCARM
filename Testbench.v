@@ -78,9 +78,9 @@ begin
 #10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h01; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b1;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //ADD R0,R1,R2
 #10	Literaltb=8'h3c; Addrtb=8'h00; calutb=8'h00; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'h2;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //CEE TEST NO SKIP IF SAME
 #10	Literaltb=8'h30; Addrtb=8'h00; calutb=8'h00; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'h2;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //CEE TEST SKIP IF NOT SAME
-#10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h01; csrctb=2'h3; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b1; //PUSH R0
+#10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h01; csrctb=2'h2; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b1; //PUSH R0
 #10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h00; csrctb=2'h0; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b1;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //IN R0
-#10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h01; csrctb=2'h3; cmsrctb=3'h7; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b1; pushtb=1'b0; //POP R0
+#10	Literaltb=8'h00; Addrtb=8'h00; calutb=8'h01; csrctb=2'h2; cmsrctb=3'h6; wr_entb=1'b1;  cpctb=2'b0;  caltb=1'b0; rettb=1'b0; poptb=1'b1; pushtb=1'b0; //POP R0
 #10	Literaltb=8'h44; Addrtb=8'h03; calutb=8'h00; csrctb=2'h1; cmsrctb=3'h0; wr_entb=1'b1;  cpctb=2'b1;  caltb=1'b0; rettb=1'b0; poptb=1'b0; pushtb=1'b0; //LD R3,44H
 #5 einttb = 1'b1;
 #5 einttb = 1'b0;
@@ -93,4 +93,3 @@ begin
 end
 
 endmodule
-
