@@ -21,6 +21,7 @@
 
 
 module ARM(
+    input wire eint,
     input wire rst,
     input wire [7:0] Lit,
     input wire [5:0] addr,
@@ -47,32 +48,18 @@ module ARM(
     input wire pop,
     input wire push,
     output wire [7:0] LNK,
-    output wire CEENZ
-    //output wire [7:0] MUXOUT
+    output wire CEENZ,
+    input wire [7:0] ambain,
+    output wire [7:0] stack
     );
 
 
 
 ALU U1 (rst,R1,R2,Lit,calu,CEE);
-Memory U2 (CEENZ,addr, datain, dataout, wr_en, clk,R0,R1,R2,R3,R4,R5,R6,PC,cpc,rst,CEE,muxout,Lit,csrc,call,ret,pop,push,LNK);
-MUX U3 (cmsrc,R0,R1,R2,R3,R4,R5,R6,CEE,muxout);
+Memory U2 (eint,CEENZ,addr, datain, dataout, wr_en, clk,R0,R1,R2,R3,R4,R5,R6,PC,cpc,rst,CEE,muxout,Lit,csrc,call,ret,pop,push,LNK,stack);
+MUX U3 (cmsrc,R0,R1,R2,R3,R4,R5,dataout,ambain,muxout);
 Compare U4 (CEE,Lit,CEENZ);
 
-
-
-/*
-module MUX(
-input wire [2:0] cmsrc,
-input wire [7:0] R0,
-input wire [7:0] R1,
-input wire [7:0] R2,
-input wire [7:0] R3,
-input wire [7:0] R4,
-input wire [7:0] R5,
-input wire [7:0] R6,
-input wire [7:0] MEMCEE,
-output reg [7:0] muxout 
-);
-*/
     
 endmodule
+
