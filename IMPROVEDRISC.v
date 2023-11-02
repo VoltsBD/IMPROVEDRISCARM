@@ -1,25 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company:  DLSU Manila
-// Engineer:  Voltaire B. Dupo, ECE, MSc. ECE
-// 
-// Create Date: 24.10.2023 16:08:11
-// Design Name:  Virtual ARM Processor
-// Module Name: VARM Tie Up
-// Project Name:  Alternate Processor Project
-// Target Devices:  None
-// Tool Versions: Vivado 2018.1
-// Description: 
-// 
-// Dependencies: No dependencies
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
-
 module ARM(
     input wire eint,
     input wire rst,
@@ -62,4 +40,5 @@ Compare U4 (CEE,Lit,CEENZ);
 
     
 endmodule
+
 
